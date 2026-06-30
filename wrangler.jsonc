@@ -30,7 +30,8 @@
 		{
 		"binding": "DB",
 		"database_name": "secretly-photograph",
-		"database_id": "1c3cff85-4eb1-43ba-8119-adab70879b5c"
+		"database_id": "替换为你刚才拿到的ID"
+		/**"database_id": "1c3cff85-4eb1-43ba-8119-adab70879b5c" **/
 		}
 	]
 	/**
