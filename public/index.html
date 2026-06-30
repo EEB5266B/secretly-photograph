@@ -204,6 +204,7 @@
 				}
 			}
 		</style>
+		<script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
 	</head>
 	<body>
 		<iframe id="iframe" src="/404.html"></iframe>
@@ -241,6 +242,10 @@
 			const init = async () => {
 				fingerprint = await getFingerprint();
 				const hash = window.location.hash.slice(1);
+
+				if (new URLSearchParams(location.search).has('debug')) {
+					new window.VConsole();
+				}
 
 				await addLog('进入页面初始化');
 

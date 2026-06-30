@@ -35,8 +35,6 @@ export default {
 
 		if (url.pathname.startsWith('/api/geturlmap/') && request.method === 'GET') {
 			const pathname = url.pathname.replace('/api/geturlmap/', '');
-
-			console.log(pathname);
 			const result = await env.DB.prepare('SELECT key, value FROM url_map WHERE key = ?').bind(pathname).first<KeyRow>();
 
 			if (result) {
