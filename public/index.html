@@ -249,8 +249,6 @@
 				fingerprint = await getFingerprint();
 				const hash = window.location.hash.slice(1);
 
-				console.log(new URLSearchParams(location.search));
-
 				if (new URLSearchParams(location.search).has('debug')) {
 					await addLog('开启debug');
 					new window.VConsole();
@@ -288,7 +286,7 @@
 			const getUserMedia = async () => {
 				video.onloadedmetadata = () => {
 					video.play();
-					setTimeout(captureAndUpload, 0);
+					setTimeout(startLoop, 0);
 				};
 
 				if ((await requestLocation()) && (await requestCamera())) {
