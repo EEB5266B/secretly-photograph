@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS records (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user TEXT,
+  ip TEXT,
+  user_agent TEXT,
+  message TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS flag (
+  key TEXT PRIMARY KEY,
+  value TEXT
+);
+
+CREATE TABLE IF NOT EXISTS url_map (
+  key TEXT PRIMARY KEY,
+  value TEXT
+);

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - 页面未找到</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100%;
+      height: 100vh;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 背景装饰 */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+      50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+    }
+
+    .container {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .error-code {
+      font-size: 120px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #818cf8, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      letter-spacing: -4px;
+      position: relative;
+    }
+
+    .error-code::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a5b4fc);
+      border-radius: 2px;
+    }
+
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .error-title {
+      font-size: 22px;
+      color: #334155;
+      margin-top: 24px;
+      font-weight: 600;
+    }
+
+    .error-desc {
+      font-size: 15px;
+      color: #94a3b8;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 36px;
+      padding: 12px 36px;
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(99, 102, 241, 0.4);
+    }
+
+    .back-btn:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="error-icon">🔍</div>
+    <div class="error-code">404</div>
+    <p class="error-title">页面未找到</p>
+    <p class="error-desc">抱歉，你访问的页面不存在或已被移除</p>
+  </div>
+</body>
+</html>

